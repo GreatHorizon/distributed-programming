@@ -6,6 +6,8 @@ namespace Valuator
 {
     public class RedisStorage : IStorage
     {
+        private readonly string host = "localhost";
+        private readonly string textSetKey = "textSetKey";
         private readonly ILogger<RedisStorage> _logger;
 
         public RedisStorage(ILogger<RedisStorage> logger) => this._logger = logger;
@@ -16,31 +18,30 @@ namespace Valuator
             return db.StringGet(key);  
         }
 
-        public List<string> GetAllText() {
-            List<string> list = new List<string>();
-            var connection = GetConnection();
-            var server = connection.GetServer("localhost:6379");
-
-           foreach(var key in server.Keys(pattern: "*TEXT-*")) {
-                list.Add(Get(key));
-            }
-
-            return list;
+        public bool HasTextDuplicate(string text) 
+        {
+            var db = GetDB();
+            return db.SetContains(textSetKey, text);
         }
 
         public void Put(string key, string value)
         {
             var db = this.GetDB();
+            if (key.StartsWith(Constants.TextKeyPrefix))
+            {
+                db.SetAdd(textSetKey, value);
+            }
             db.StringSet(key, value);
         }
-
-        private IDatabase GetDB() {
-            ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect("localhost");
+        private IDatabase GetDB() 
+        {
+            ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect(host);
             return connectionMultiplexer.GetDatabase();
         }
 
-        private ConnectionMultiplexer GetConnection() {
-            return ConnectionMultiplexer.Connect("localhost");
+        private ConnectionMultiplexer GetConnection() 
+        {
+            return ConnectionMultiplexer.Connect(host);
         }
     }
 

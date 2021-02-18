@@ -27,18 +27,18 @@ namespace Valuator.Pages
         public IActionResult OnPost(string text)
         {
 
-            if (string.IsNullOrEmpty(text)) {
+            if (string.IsNullOrEmpty(text)) 
+            {
                 return Redirect("/");
             }
 
             string id = Guid.NewGuid().ToString();
-            string textKey = "TEXT-" + id;
-            string rankKey = "RANK-" + id;  
-            string similarityKey = "SIMILARITY-" + id;
+            string textKey = Constants.TextKeyPrefix + id;
+            string rankKey = Constants.RankKeyPrefix + id;  
+            string similarityKey = Constants.SimilarityKeyPrefix + id;
 
             int similarity = GetSimilarity(text);
             double rank = GetRank(text);
-            _logger.LogWarning(rank.ToString());
 
             _storage.Put(textKey, text);
             _storage.Put(similarityKey, similarity.ToString());
@@ -47,7 +47,8 @@ namespace Valuator.Pages
             return Redirect($"summary?id={id}");
         }
 
-        private double GetRank(string text) {
+        private double GetRank(string text) 
+        {
             int nonAlphaCount = 0;
             foreach (var symbol in text)
             {
@@ -59,17 +60,9 @@ namespace Valuator.Pages
 
             return Math.Round(Convert.ToDouble(nonAlphaCount) / Convert.ToDouble(text.Length), 2);
         }
-        private int GetSimilarity(string text) {
-            List<string> texts = _storage.GetAllText();
-            
-            foreach (string str in texts) {
-                if (str == text) 
-                {
-                    return 1; 
-                }
-            }
-
-            return 0;
+        private int GetSimilarity(string text) 
+        {
+            return _storage.HasTextDuplicate(text) ? 1 : 0;
         }
     }
 }

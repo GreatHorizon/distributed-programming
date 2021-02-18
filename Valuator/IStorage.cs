@@ -8,6 +8,6 @@ namespace Valuator
         void Put(string key, string value);
         string Get(string key);
 
-        public List<string> GetAllText();
+        public bool HasTextDuplicate(string text);
     }
 }
