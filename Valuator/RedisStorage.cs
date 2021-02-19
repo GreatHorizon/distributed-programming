@@ -6,7 +6,7 @@ namespace Valuator
 {
     public class RedisStorage : IStorage
     {
-        private readonly string Host = "localhost";
+        private readonly string host = "localhost";
         private readonly string TextSetKey = "textSetKey";
         private readonly ILogger<RedisStorage> _logger;
 
