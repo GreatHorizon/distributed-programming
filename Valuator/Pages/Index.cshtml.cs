@@ -41,6 +41,7 @@ namespace Valuator.Pages
             double rank = GetRank(text);
 
             _storage.Put(textKey, text);
+            _storage.PutTextToSet(text);
             _storage.Put(similarityKey, similarity.ToString());
             _storage.Put(rankKey, rank.ToString());
             

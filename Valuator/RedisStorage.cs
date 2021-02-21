@@ -27,13 +27,15 @@ namespace Valuator
         public void Put(string key, string value)
         {
             var db = this.GetDB();
-            if (key.StartsWith(Constants.TextKeyPrefix))
-            {
-                db.SetAdd(TextSetKey, value);
-            }
             db.StringSet(key, value);
         }
 
+        public void PutTextToSet(string value)
+        {
+            var db = this.GetDB();
+            db.SetAdd(TextSetKey, value);
+        }
+        
         private IDatabase GetDB() 
         {
             ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect(Host);
