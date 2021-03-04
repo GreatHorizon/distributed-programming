@@ -8,6 +8,7 @@ namespace Valuator
     {
         private readonly string _host = "localhost";
         private readonly string _textSetKey = "textSetKey";
+
         private readonly ILogger<RedisStorage> _logger;
 
         public RedisStorage(ILogger<RedisStorage> logger) => this._logger = logger;

@@ -1,11 +1,15 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using NATS.Client;
+using System.Text;
 
 namespace Valuator.Pages
 {
@@ -38,32 +42,40 @@ namespace Valuator.Pages
             string similarityKey = Constants.SimilarityKeyPrefix + id;
 
             int similarity = GetSimilarity(text);
-            double rank = GetRank(text);
-
             _storage.Put(textKey, text);
             _storage.PutTextToSet(text);
             _storage.Put(similarityKey, similarity.ToString());
-            _storage.Put(rankKey, rank.ToString());
+            CalculateAndStoreRank(id);
             
             return Redirect($"summary?id={id}");
         }
 
-        private double GetRank(string text) 
+        private void CalculateAndStoreRank(string id)
         {
-            int nonAlphaCount = 0;
-            foreach (var symbol in text)
-            {
-                if (!Char.IsLetter(symbol)) 
-                {
-                    nonAlphaCount++;
-                }
-            }
-
-            return Math.Round(Convert.ToDouble(nonAlphaCount) / Convert.ToDouble(text.Length), 2);
+            CancellationTokenSource cts = new CancellationTokenSource();
+            Task.Factory.StartNew(async () => await ProduceAsync(id, cts.Token), cts.Token);
         }
+
         private int GetSimilarity(string text) 
         {
             return _storage.HasTextDuplicate(text) ? 1 : 0;
+        }
+
+        static async Task ProduceAsync(string id, CancellationToken ct)
+        {
+            ConnectionFactory cf = new ConnectionFactory();
+
+            using (IConnection c = cf.CreateConnection())
+            {
+                if  (!ct.IsCancellationRequested)
+                {
+                    byte[] data = Encoding.UTF8.GetBytes(id);
+                    c.Publish("valuator.processing.rank", data);
+                }
+
+                c.Drain();
+                c.Close();
+            }
         }
     }
 }
