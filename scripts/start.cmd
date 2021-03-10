@@ -1,10 +1,11 @@
 cd ..\Valuator\
-start dotnet run --urls "http://localhost:5001"
-start dotnet run --urls "http://localhost:5002"
-
-cd ..\RankCalculator\
-start dotnet run
-start dotnet run
+start "first_app_exemplar" dotnet run --urls "http://localhost:5001"
+start "second_app_exemplar" dotnet run --urls "http://localhost:5002"
 
 cd ..\nginx\
 start nginx
+
+cd ..\RankCalculator\
+start "first_consumer" dotnet run
+start "second_consumer" dotnet run
+
