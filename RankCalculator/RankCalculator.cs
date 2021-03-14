@@ -54,9 +54,9 @@ namespace RankCalculator
             return JsonSerializer.Serialize(info);
         }
 
-        private void SendLoggerInfo(string key, string rank)
+        private void SendLoggerInfo(string context, string value)
         {
-            var info = new RankInfo(key, rank);
+            var info = new RankInfo(context, value);
             CancellationTokenSource cts = new CancellationTokenSource();
             Task.Factory.StartNew(() => EmitRankCalculatedEvent(GetSerializedInfo(info)), cts.Token);
         }
