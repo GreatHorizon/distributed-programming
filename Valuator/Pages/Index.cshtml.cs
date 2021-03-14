@@ -1,11 +1,17 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using NATS.Client;
+using System.Text;
+using Valuator;
+using System.Text.Json;
 
 namespace Valuator.Pages
 {
@@ -38,32 +44,59 @@ namespace Valuator.Pages
             string similarityKey = Constants.SimilarityKeyPrefix + id;
 
             int similarity = GetSimilarity(text);
-            double rank = GetRank(text);
-
             _storage.Put(textKey, text);
             _storage.PutTextToSet(text);
+
             _storage.Put(similarityKey, similarity.ToString());
-            _storage.Put(rankKey, rank.ToString());
+
+            SendLoggerInfo(id, similarity.ToString());
+            CalculateAndStoreRank(id);
             
             return Redirect($"summary?id={id}");
         }
 
-        private double GetRank(string text) 
+        private void CalculateAndStoreRank(string id)
         {
-            int nonAlphaCount = 0;
-            foreach (var symbol in text)
-            {
-                if (!Char.IsLetter(symbol)) 
-                {
-                    nonAlphaCount++;
-                }
-            }
-
-            return Math.Round(Convert.ToDouble(nonAlphaCount) / Convert.ToDouble(text.Length), 2);
+            CancellationTokenSource cts = new CancellationTokenSource();
+            Task.Factory.StartNew(() => ProduceAsync(id), cts.Token);
         }
+
+        private void SendLoggerInfo(string context, string value) 
+        {
+            SimilarityInfo info = new SimilarityInfo(context, value);
+            CancellationTokenSource cts = new CancellationTokenSource();
+            Task.Factory.StartNew(() => EmmitSimilarityCalculatedEvent(GetSerializedInfo(info)), cts.Token);
+        }
+
+        private string GetSerializedInfo(SimilarityInfo info)
+        {
+            return JsonSerializer.Serialize(info);
+        }
+
+        private void EmmitSimilarityCalculatedEvent(string info)
+        {
+            using (var cn = new ConnectionFactory().CreateConnection())
+            {
+                cn.Publish(Constants.SimilarityCalculatedEvent, Encoding.UTF8.GetBytes(info));
+            }
+        }
+
         private int GetSimilarity(string text) 
         {
             return _storage.HasTextDuplicate(text) ? 1 : 0;
+        }
+
+        static async Task ProduceAsync(string id)
+        {
+            ConnectionFactory cf = new ConnectionFactory();
+
+            using (IConnection c = cf.CreateConnection())
+            {
+                byte[] data = Encoding.UTF8.GetBytes(id);
+                c.Publish("valuator.processing.rank", data);
+                c.Drain();
+                c.Close();
+            }
         }
     }
 }
