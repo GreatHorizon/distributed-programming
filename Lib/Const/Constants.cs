@@ -1,6 +1,6 @@
-namespace Valuator
+namespace Lib
 {
-    static class Constants
+    public static class Constants
     {
         public const string TextKeyPrefix = "TEXT-";
         public const string RankKeyPrefix = "RANK-";

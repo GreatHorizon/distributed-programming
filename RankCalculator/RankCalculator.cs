@@ -5,8 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NATS.Client;
-using Valuator;
 using System.Text.Json;
+using Lib;
 
 namespace RankCalculator
 {

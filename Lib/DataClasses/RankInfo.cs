@@ -1,4 +1,4 @@
-namespace Valuator
+namespace Lib
 {
     public class RankInfo
     {

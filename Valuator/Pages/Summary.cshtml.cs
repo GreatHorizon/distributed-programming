@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using System.Threading;
+using Lib;
 
 namespace Valuator.Pages
 {
@@ -23,8 +25,20 @@ namespace Valuator.Pages
 
         public void OnGet(string id)
         {
-            Rank = Convert.ToDouble(_storage.Get("RANK-" + id));
-            Similarity = Convert.ToDouble(_storage.Get("SIMILARITY-" + id));
+            string rank = _storage.Get(Constants.RankKeyPrefix + id);
+
+            for (int i = 0; i < 20; i++)
+            {
+                if (!string.IsNullOrEmpty(rank))
+                {
+                    break;
+                }
+                Thread.Sleep(200);
+                rank = _storage.Get(Constants.RankKeyPrefix + id);
+            }
+
+            Rank = Convert.ToDouble(rank);
+            Similarity = Convert.ToDouble(_storage.Get(Constants.SimilarityKeyPrefix + id));
         }
     }
 }

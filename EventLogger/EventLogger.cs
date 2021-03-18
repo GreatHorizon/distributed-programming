@@ -1,9 +1,7 @@
 using System;
 using NATS.Client;
-using System.Text;
 using System.Text.Json;
-using System.Runtime.Serialization;
-using Valuator;
+using Lib;
 
 namespace EventLogger
 {

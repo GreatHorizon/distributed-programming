@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
-namespace Valuator
+namespace Lib
 {
     public class RedisStorage : IStorage
     {

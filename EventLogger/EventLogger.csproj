@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netcoreapp5.0</TargetFramework>
   </PropertyGroup>
   
 <ItemGroup>
@@ -12,9 +12,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\\Valuator\Utils\RankInfo.cs" />
-    <Compile Include="..\\Valuator\Utils\SimilarityInfo.cs" />
-    <Compile Include="..\Valuator\Constants.cs" />
-
+    <ProjectReference Include="../Lib/Lib.csproj" />
   </ItemGroup>
 </Project>

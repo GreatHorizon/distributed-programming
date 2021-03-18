@@ -12,6 +12,7 @@ using NATS.Client;
 using System.Text;
 using Valuator;
 using System.Text.Json;
+using Lib;
 
 namespace Valuator.Pages
 {
