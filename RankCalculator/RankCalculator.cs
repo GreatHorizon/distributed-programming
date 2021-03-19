@@ -20,7 +20,7 @@ namespace RankCalculator
         public void Start()
         {
             IConnection connection = CreateConnection();
-           IAsyncSubscription subscription = CreateSubscription(connection);
+            IAsyncSubscription subscription = CreateSubscription(connection);
 
             subscription.Start();
 

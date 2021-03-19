@@ -52,8 +52,7 @@ namespace Valuator.Pages
 
         private void CalculateAndStoreRank(string id)
         {
-            CancellationTokenSource cts = new CancellationTokenSource();
-            Task.Factory.StartNew(() =>ProduceAsync(id, cts.Token), cts.Token);
+            Task.Factory.StartNew(() =>ProduceAsync(id));
         }
 
         private int GetSimilarity(string text) 
@@ -61,14 +60,14 @@ namespace Valuator.Pages
             return _storage.HasTextDuplicate(text) ? 1 : 0;
         }
 
-        static async Task ProduceAsync(string id, CancellationToken ct)
+        private static void ProduceAsync(string id)
         {
             ConnectionFactory cf = new ConnectionFactory();
 
             using (IConnection c = cf.CreateConnection())
             {
                 byte[] data = Encoding.UTF8.GetBytes(id);
-                c.Publish("valuator.processing.rank", data);
+                c.Publish(Constants.SubjectName, data);
                 c.Drain();
                 c.Close();
             }
