@@ -5,8 +5,8 @@ namespace Lib
         public const string TextKeyPrefix = "TEXT-";
         public const string RankKeyPrefix = "RANK-";
         public const string SimilarityKeyPrefix = "SIMILARITY-";
-        public const string SubjectName = "valuator.processing.rank";
-        public const string QueueGroupName = "rank_calculator";
+        public const string CalculateRankSubject = "valuator.processing.rank";
+        public const string CalculateRankQueueGroupName = "rank_calculator";
 
         public const string RankCalculatedEvent = "RankCalculated";
         public const string SimilarityCalculatedEvent = "SimilarityCalculated";

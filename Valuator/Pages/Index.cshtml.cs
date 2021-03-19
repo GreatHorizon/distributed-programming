@@ -20,11 +20,13 @@ namespace Valuator.Pages
     {
         private readonly ILogger<IndexModel> _logger;
         private readonly IStorage _storage;
+        private readonly IPublisher _publisher;
 
-        public IndexModel(ILogger<IndexModel> logger, IStorage storage)
+        public IndexModel(ILogger<IndexModel> logger, IStorage storage, IPublisher publisher)
         {
             _logger = logger;
             _storage = storage;
+            _publisher = publisher;
         }
 
         public void OnGet()
@@ -58,28 +60,13 @@ namespace Valuator.Pages
 
         private void CalculateAndStoreRank(string id)
         {
-            CancellationTokenSource cts = new CancellationTokenSource();
-            Task.Factory.StartNew(() => ProduceAsync(id), cts.Token);
+            _publisher.Publish(Constants.CalculateRankSubject, id);
         }
 
         private void SendLoggerInfo(string context, string value) 
         {
             SimilarityInfo info = new SimilarityInfo(context, value);
-            CancellationTokenSource cts = new CancellationTokenSource();
-            Task.Factory.StartNew(() => EmmitSimilarityCalculatedEvent(GetSerializedInfo(info)), cts.Token);
-        }
-
-        private string GetSerializedInfo(SimilarityInfo info)
-        {
-            return JsonSerializer.Serialize(info);
-        }
-
-        private void EmmitSimilarityCalculatedEvent(string info)
-        {
-            using (var cn = new ConnectionFactory().CreateConnection())
-            {
-                cn.Publish(Constants.SimilarityCalculatedEvent, Encoding.UTF8.GetBytes(info));
-            }
+            _publisher.Publish(Constants.SimilarityCalculatedEvent, GetSerializedInfo(info));
         }
 
         private int GetSimilarity(string text) 
@@ -87,17 +74,9 @@ namespace Valuator.Pages
             return _storage.HasTextDuplicate(text) ? 1 : 0;
         }
 
-        static async Task ProduceAsync(string id)
+        static string GetSerializedInfo(SimilarityInfo info)
         {
-            ConnectionFactory cf = new ConnectionFactory();
-
-            using (IConnection c = cf.CreateConnection())
-            {
-                byte[] data = Encoding.UTF8.GetBytes(id);
-                c.Publish("valuator.processing.rank", data);
-                c.Drain();
-                c.Close();
-            }
+            return JsonSerializer.Serialize(info);
         }
     }
 }

@@ -14,11 +14,13 @@ namespace RankCalculator
     {
         private IStorage _storage;
         private ILogger<RankCalculator> _logger;
+        private IPublisher _publisher;
         
-        public RankCalculator(IStorage storage, ILogger<RankCalculator> logger)
+        public RankCalculator(IStorage storage, ILogger<RankCalculator> logger, IPublisher publisher)
         {
             _storage = storage;
             _logger = logger;
+            _publisher = publisher;
         }
 
         public void Start()
@@ -41,29 +43,15 @@ namespace RankCalculator
             return cf.CreateConnection();
         }
 
-        private void EmitRankCalculatedEvent(string info)
-        {
-            using (var conn = new ConnectionFactory().CreateConnection())
-            {
-                conn.Publish(Constants.RankCalculatedEvent, Encoding.UTF8.GetBytes(info));
-            }
-        }
-
-        private string GetSerializedInfo(RankInfo info)
-        {
-            return JsonSerializer.Serialize(info);
-        }
-
         private void SendLoggerInfo(string context, string value)
         {
             var info = new RankInfo(context, value);
-            CancellationTokenSource cts = new CancellationTokenSource();
-            Task.Factory.StartNew(() => EmitRankCalculatedEvent(GetSerializedInfo(info)), cts.Token);
+            _publisher.Publish(Constants.RankCalculatedEvent, GetSerializedInfo(info));
         }
 
         private IAsyncSubscription CreateSubscription(IConnection connection)
         {
-            return connection.SubscribeAsync(Constants.SubjectName, Constants.QueueGroupName, (sender, args) =>
+            return connection.SubscribeAsync(Constants.CalculateRankSubject, Constants.CalculateRankQueueGroupName, (sender, args) =>
             {
                 string key = Encoding.UTF8.GetString(args.Message.Data);
                 string text = _storage.Get(Constants.TextKeyPrefix + key);
@@ -92,6 +80,13 @@ namespace RankCalculator
 
             return rank;
         }
+
+
+        static string GetSerializedInfo(RankInfo info)
+        {
+            return JsonSerializer.Serialize(info);
+        }
+
     }
     
 }

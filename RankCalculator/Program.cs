@@ -10,7 +10,7 @@ namespace RankCalculator
         {
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
             var storage = new RedisStorage(new Logger<RedisStorage>(loggerFactory));
-            var calculator = new RankCalculator(storage, loggerFactory.CreateLogger<RankCalculator>());
+            var calculator = new RankCalculator(storage, loggerFactory.CreateLogger<RankCalculator>(), new NatsPublisher());
             calculator.Start();
         }
     }
