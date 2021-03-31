@@ -1,15 +1,33 @@
-﻿@page
+﻿
+@page
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
 }
 
+@using Lib
+
 <div class="text-center">
     <form method="post">
         <div class="col-2">Текст для оценки:</div>
+        
         <div class="col-10">
-            <textarea name="text" rows="5" cols="50"></textarea>
+            <textarea name="text" rows="5" cols="50" required></textarea>
             <span name="error_message"></span>
+        </div>
+
+        <div class="col-10">
+            <select name="shardId" required>
+                <option value=>Select a country</option>
+                <option value=@Constants.RusShardId>Russia</option>
+                <option value=@Constants.EuShardId>France</option>
+                <option value=@Constants.EuShardId>Germany</option>
+                <option value=@Constants.OtherShardId>USA</option>
+                <option value=@Constants.OtherShardId>India</option>
+            </select>
+        </div>
+
+        <div class="col-10" style="margin-top:5px;">
             <input type="submit" />
         </div>
     </form>

@@ -5,10 +5,15 @@ namespace Lib
 {
     public interface IStorage 
     {
-        void Put(string key, string value);
-        string Get(string key);
-        void PutTextToSet(string value);
+        void Put(string shardKey, string key, string value);
+        string Get(string shardKey, string key);
+        void PutTextToSet(string shardKey, string value);
 
-        public bool HasTextDuplicate(string text);
+        bool HasTextDuplicate(string text);
+
+        void PutShardId(string key, string shardId);
+
+        string GetShardId(string key);
+
     }
 }

@@ -33,9 +33,8 @@ namespace Valuator.Pages
         {
         }
 
-        public IActionResult OnPost(string text)
+        public IActionResult OnPost(string text, string shardId)
         {
-
             if (string.IsNullOrEmpty(text)) 
             {
                 return Redirect("/");
@@ -46,13 +45,15 @@ namespace Valuator.Pages
             string rankKey = Constants.RankKeyPrefix + id;  
             string similarityKey = Constants.SimilarityKeyPrefix + id;
 
-            int similarity = GetSimilarity(text);
-            _storage.Put(textKey, text);
-            _storage.PutTextToSet(text);
+            _logger.LogInformation($"LOOKUP: {id} {shardId}");
 
-            _storage.Put(similarityKey, similarity.ToString());
+            _storage.PutShardId(id, shardId);
+            _storage.Put(shardId, textKey, text);
+            _storage.PutTextToSet(shardId, text);
+            _storage.Put(shardId, similarityKey, GetSimilarity(text).ToString());
 
-            SendLoggerInfo(id, similarity.ToString());
+            SendLoggerInfo(id, GetSimilarity(text).ToString());
+
             CalculateAndStoreRank(id);
             
             return Redirect($"summary?id={id}");

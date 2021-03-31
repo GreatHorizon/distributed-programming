@@ -10,5 +10,9 @@ namespace Lib
 
         public const string RankCalculatedEvent = "RankCalculated";
         public const string SimilarityCalculatedEvent = "SimilarityCalculated";
+
+        public const string RusShardId = "RUS";
+        public const string EuShardId = "EU";
+        public const string OtherShardId = "OTHER";
     }
 } 

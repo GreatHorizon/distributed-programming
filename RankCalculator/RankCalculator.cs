@@ -54,10 +54,11 @@ namespace RankCalculator
             return connection.SubscribeAsync(Constants.CalculateRankSubject, Constants.CalculateRankQueueGroupName, (sender, args) =>
             {
                 string key = Encoding.UTF8.GetString(args.Message.Data);
-                string text = _storage.Get(Constants.TextKeyPrefix + key);
+                _logger.LogInformation($"LOOKUP: {key} {_storage.GetShardId(key)}");
+                string text = _storage.Get(_storage.GetShardId(key), Constants.TextKeyPrefix + key);
                 string rank = CalculateRank(text).ToString();
 
-                _storage.Put(Constants.RankKeyPrefix + key, rank);
+                _storage.Put(_storage.GetShardId(key), Constants.RankKeyPrefix + key, rank);
                 SendLoggerInfo(key, rank);
             });
         }

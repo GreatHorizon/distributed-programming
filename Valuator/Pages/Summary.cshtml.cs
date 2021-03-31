@@ -25,7 +25,9 @@ namespace Valuator.Pages
 
         public void OnGet(string id)
         {
-            string rank = _storage.Get(Constants.RankKeyPrefix + id);
+            string rank = _storage.Get(_storage.GetShardId(id), Constants.RankKeyPrefix + id);
+
+            _logger.LogInformation($"LOOKUP: {id} {_storage.GetShardId(id)}");
 
             for (int i = 0; i < 20; i++)
             {
@@ -34,11 +36,11 @@ namespace Valuator.Pages
                     break;
                 }
                 Thread.Sleep(200);
-                rank = _storage.Get(Constants.RankKeyPrefix + id);
+                rank = _storage.Get(_storage.GetShardId(id), Constants.RankKeyPrefix + id);
             }
 
             Rank = Convert.ToDouble(rank);
-            Similarity = Convert.ToDouble(_storage.Get(Constants.SimilarityKeyPrefix + id));
+            Similarity = Convert.ToDouble(_storage.Get(_storage.GetShardId(id), Constants.SimilarityKeyPrefix + id));
         }
     }
 }

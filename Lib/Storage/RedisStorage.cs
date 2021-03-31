@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
@@ -8,43 +9,80 @@ namespace Lib
     {
         private readonly string _host = "localhost";
         private readonly string _textSetKey = "textSetKey";
-        private readonly ILogger<RedisStorage> _logger;
 
-        public RedisStorage(ILogger<RedisStorage> logger) => this._logger = logger;
+        private IConnectionMultiplexer _connection;
+        private Dictionary<string, IConnectionMultiplexer> _shardsConnections;
 
-        public string Get(string key)
+        public RedisStorage(ILogger<RedisStorage> logger) 
         {
-            var db = this.GetDB();
+            _connection = ConnectionMultiplexer.Connect(_host);
+            _shardsConnections = CreateShardsConnectons();
+        }
+
+
+        private Dictionary<string, IConnectionMultiplexer> CreateShardsConnectons()
+        {
+            var connections = new Dictionary<string, IConnectionMultiplexer>();
+
+            connections.Add(Constants.RusShardId, 
+            ConnectionMultiplexer.Connect(Environment.GetEnvironmentVariable("DB_RUS", EnvironmentVariableTarget.User)));
+            
+            connections.Add(Constants.EuShardId, 
+            ConnectionMultiplexer.Connect(Environment.GetEnvironmentVariable("DB_EU", EnvironmentVariableTarget.User)));
+            
+            connections.Add(Constants.OtherShardId, 
+            ConnectionMultiplexer.Connect(Environment.GetEnvironmentVariable("DB_OTHER", EnvironmentVariableTarget.User)));
+            
+            return connections;    
+        }
+
+        public string Get(string shardKey, string key)
+        {
+            var connection = GetShardConnection(shardKey);
+            var db = _connection.GetDatabase();
             return db.StringGet(key);  
         }
 
         public bool HasTextDuplicate(string text) 
         {
-            var db = GetDB();
-            return db.SetContains(_textSetKey, text);
+            var rusConnection = GetShardConnection(Constants.RusShardId);
+            var euConnection = GetShardConnection(Constants.EuShardId);
+            var otherConnection = GetShardConnection(Constants.OtherShardId);
+
+            return rusConnection.GetDatabase().SetContains(_textSetKey, text) 
+                || euConnection.GetDatabase().SetContains(_textSetKey, text)
+                || otherConnection.GetDatabase().SetContains(_textSetKey, text);
         }
 
-        public void Put(string key, string value)
+        public void Put(string shardKey, string key, string value)
         {
-            var db = this.GetDB();
+            var connection = GetShardConnection(shardKey);
+            var db = _connection.GetDatabase();
             db.StringSet(key, value);
         }
 
-        public void PutTextToSet(string value)
+        public void PutTextToSet(string shardKey, string value)
         {
-            var db = this.GetDB();
+            var connection = GetShardConnection(shardKey);
+            var db = connection.GetDatabase();
             db.SetAdd(_textSetKey, value);
         }
-        
-        private IDatabase GetDB() 
+
+        private IConnectionMultiplexer GetShardConnection(string shardKey) 
         {
-            ConnectionMultiplexer connectionMultiplexer = ConnectionMultiplexer.Connect(_host);
-            return connectionMultiplexer.GetDatabase();
+            return _shardsConnections[shardKey];
         }
 
-        private ConnectionMultiplexer GetConnection() 
+        public string GetShardId(string key)
         {
-            return ConnectionMultiplexer.Connect(_host);
+            var db = _connection.GetDatabase();
+            return db.StringGet(key);
+        }
+
+        public void PutShardId(string key, string shardId)
+        {
+            var db = _connection.GetDatabase();
+            db.StringSet(key, shardId);
         }
     }
 
