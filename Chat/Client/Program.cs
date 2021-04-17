@@ -43,7 +43,6 @@ namespace Client
 
                     List<string> history = JsonSerializer.Deserialize<List<string>>(Encoding.UTF8.GetString(buf, 0, bytesRec));
                     
-                    Console.WriteLine("History: ");
                     foreach (string item in history)
                     {
                         Console.WriteLine(item);
@@ -76,15 +75,7 @@ namespace Client
 
         static void Main(string[] args)
         {
-            if (args.Length == 3)
-            {
-                StartClient(args[0], args[1], args[2]);
-            }
-            else
-            {
-                Console.WriteLine("Invalid arguments count");
-            }
-
+            StartClient(args[0], args[1], args[2]);
         }
     }
 }

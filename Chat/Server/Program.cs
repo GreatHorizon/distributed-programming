@@ -29,10 +29,7 @@ namespace Server
 
                 while (true)
                 {
-                    Console.WriteLine("Waiting for connection...");
                     Socket handler = listener.Accept();
-
-                    Console.WriteLine("Data receiving...");
                     byte[] buf = new byte[1024];
                     string data = null;
                     int bytesRec = handler.Receive(buf);
@@ -41,7 +38,7 @@ namespace Server
 
                     messageHistory.Add(data);
 
-                    Console.WriteLine("Received message: {0}", data);
+                    Console.WriteLine("Message received: {0}", data);
 
                     string historyJson = JsonSerializer.Serialize(messageHistory);
                     byte[] history = Encoding.UTF8.GetBytes(historyJson);
